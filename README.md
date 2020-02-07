@@ -1,1 +1,1 @@
-# sentence-classifier
+# Sentence Classification

@@ -1,0 +1,7 @@
+{
+    "train_size": 136630,
+    "dev_size": 29278,
+    "test_size": 29278,
+    "vocab_size": 33859,
+    "max_sentence_length": 70
+}

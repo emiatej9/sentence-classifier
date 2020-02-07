@@ -1,0 +1,6 @@
+{
+    "embedding_dim": 300,
+    "num_filters": 100,
+    "regularization_factor": 3,
+    "base_kernel_size": 3
+}

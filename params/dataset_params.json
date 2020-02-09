@@ -1,7 +1,7 @@
 {
-    "train_size": 136630,
-    "dev_size": 29278,
-    "test_size": 29278,
-    "vocab_size": 33859,
+    "train_size": 136967,
+    "dev_size": 29350,
+    "test_size": 29351,
+    "vocab_size": 36769,
     "max_sentence_length": 70
 }

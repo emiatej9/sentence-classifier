@@ -1,5 +1,3 @@
-"""Read, split and save the nsmc dataset for our model"""
-
 import os
 import re
 import json
@@ -8,14 +6,20 @@ import MeCab
 from collections import Counter
 
 
-def load_dataset(dir_path: str, except_first=False):
-    if not os.path.exists(dir_path):
-        msg = "{} doesn't exist.".format(dir_path)
+def load_dataset(path: str, except_first=False):
+    """Load all dataset files and return list which contains all dataset.
+
+    :param path:
+    :param except_first:
+    :return:
+    """
+    if not os.path.exists(path):
+        msg = "{} doesn't exist.".format(path)
         raise Exception(msg)
 
     dataset = list()
-    for file in os.listdir(dir_path):
-        file_path = os.path.join(dir_path, file)
+    for file in os.listdir(path):
+        file_path = os.path.join(path, file)
 
         with open(file_path, encoding="utf-8") as f:
             lines = f.readlines()
@@ -31,63 +35,66 @@ def preprocess(dataset: list) -> list:
     tagger = MeCab.Tagger('-d /usr/local/lib/mecab/dic/mecab-ko-dic')
     preprocessed = list()
     for nid, raw_sentence, raw_label in dataset:
-
         try:
             sentence = _preprocess(raw_sentence, tagger)
             label = int(raw_label)
-
             assert sentence
             assert label in (0, 1)
-
             preprocessed.append((sentence, label))
-
         except (ValueError, AssertionError):
             pass
-            # line = line.strip()
-            # print(f"fail to parse '{line}'.")
 
     return preprocessed
 
 
 def _preprocess(sentence: str, tagger) -> str:
+    """
 
+    :param sentence:
+    :param tagger:
+    :return:
+    """
+
+    # change emotional characters to normal word
     substitutions = [('ㅡㅡ', '짜증'), ('ㅋㅋ', '웃음'), ('ㅎㅎ', '웃음'), ('노잼', '재미업다')]
     for sub in substitutions:
         sentence = sentence.replace(sub[0], f' {sub[1]} ')
 
+    # only Hangul, Alphabets characters and numbers are allowed
     trimmed = re.sub(r'[^가-힣\d\w]', ' ', sentence).strip()
 
     terms = list()
     tag_symbols = list()
     if trimmed:
         morphemes = tagger.parse(trimmed).split('\n')
-        end_term = 'EOS'
+        # belows are considered meaningless in sentimental classification task
         ignored_tag = ('E', 'JK', 'XP', 'XS', 'I', 'NP', 'SN', 'NNBC', 'SL', 'NR', 'VCP')
 
         for morp in morphemes:
             term_tag = morp.split()
             term = term_tag[0]
-            if term == end_term:
+            if term == 'EOS':
                 break
 
             tag = term_tag[1]
             tag_symbol = tag.split(',')[0]
             if tag_symbol.startswith(ignored_tag):
                 continue
-
             elif tag_symbol == 'NNP':
+                # replace proper noun characters as category words
+                # e.g. changed '송강호' to '인명', '서울' to '지명'
                 nnp_category = tag.split(',')[1]
-
                 if nnp_category != '*':
                     term = nnp_category
-
             elif tag_symbol in ('VV', 'VA', 'VX'):
                 if len(term) < 2:
                     term += '다'
 
             if len(term) < 2:
+                # exclude single(=length 1) character
                 continue
             elif len(term) > 3:
+                # shorten terms by removing postfix, when length > 3
                 term = term[:2]
 
             terms.append(term)

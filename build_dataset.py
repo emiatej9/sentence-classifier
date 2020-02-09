@@ -62,7 +62,7 @@ def _preprocess(sentence: str, tagger) -> str:
     if trimmed:
         morphemes = tagger.parse(trimmed).split('\n')
         end_term = 'EOS'
-        ignored_tag = ('E', 'JK', 'XP', 'XS', 'I', 'NP', 'SN', 'NNBC', 'SL', 'NR', 'UNKNOWN', 'VCP')
+        ignored_tag = ('E', 'JK', 'XP', 'XS', 'I', 'NP', 'SN', 'NNBC', 'SL', 'NR', 'VCP')
 
         for morp in morphemes:
             term_tag = morp.split()
@@ -109,12 +109,10 @@ def save_dataset(dataset, save_dir):
         os.makedirs(save_dir)
 
     with open(os.path.join(save_dir, 'sentences.txt'), 'w') as f:
-        for sentence, _ in dataset:
-            f.write(f'{sentence}\n')
+        f.write('\n'.join([sentence for sentence, label in dataset]))
 
     with open(os.path.join(save_dir, 'labels.txt'), 'w') as f:
-        for _, label in dataset:
-            f.write(f'{label}\n')
+        f.write('\n'.join([str(label) for sentence, label in dataset]))
 
 
 def save_dict_to_json(d, json_path):
@@ -143,15 +141,6 @@ if __name__ == "__main__":
     _dataset = preprocess(load_dataset('./data/nsmc/raw', except_first=True))
     _sentences = [sentence for sentence, label in _dataset]
     vocab = vocabulary(_sentences)
-
-    import matplotlib.pyplot as plt
-
-    words = sorted(vocab.keys(), key=lambda x: vocab[x], reverse=True)[:100]
-    print(words)
-    counts = [vocab[word] for word in words]
-
-    plt.plot(words, counts)
-    plt.show()
 
     max_sentence_length = max_length(_sentences)
     dataset_size = len(_sentences)

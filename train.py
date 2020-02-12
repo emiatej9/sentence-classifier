@@ -4,7 +4,9 @@ import json
 import numpy as np
 import tensorflow as tf
 
-from model.input_fn import input_fn
+from tensorflow.keras.preprocessing.text import Tokenizer
+
+from model.input_fn import encode_sentences
 from model.model_fn import model_fn
 
 
@@ -32,9 +34,13 @@ if __name__ == '__main__':
     model = model_fn(data_params, model_params)
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 
-    training_sentences = input_fn(dataset['train']['sentences'], data_params)
+    num_words = data_params['vocab_size']
+    tokenizer = Tokenizer(num_words=num_words, split=' ', oov_token='<unk>')
+    tokenizer.fit_on_texts(dataset['train']['sentences'])
+
+    training_sentences = encode_sentences(dataset['train']['sentences'], tokenizer, data_params)
     training_labels = np.asarray([int(label) for label in dataset['train']['labels']])
-    dev_sentences = input_fn(dataset['dev']['sentences'], data_params)
+    dev_sentences = encode_sentences(dataset['dev']['sentences'], tokenizer, data_params)
     dev_labels = np.asarray([int(label) for label in dataset['dev']['labels']])
 
     print(training_sentences.shape, training_sentences[1])
@@ -44,9 +50,9 @@ if __name__ == '__main__':
     batch_size = training_params['batch_size']
     epochs = training_params['epochs']
 
-    model.fit(training_sentences, training_labels,
+    model.fit(training_sentences[:100], training_labels[:100],
               batch_size=batch_size,
               epochs=epochs,
-              validation_data=(dev_sentences, dev_labels))
+              validation_data=(dev_sentences[:30], dev_labels[:30]))
 
 

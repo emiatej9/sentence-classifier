@@ -100,14 +100,12 @@ def _preprocess(sentence: str, tagger) -> str:
             terms.append(term)
             tag_symbols.append(tag_symbol)
 
-    '''
     print(sentence)
     print(trimmed)
     for i in range(len(terms)):
         print(f'{terms[i]}({tag_symbols[i]})', end=' ')
 
     print('\n')
-    '''
     return ' '.join(terms)
 
 
